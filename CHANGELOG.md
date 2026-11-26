@@ -16,3 +16,14 @@
 - Moved the public source to the standalone `rail-id` repository.
 - Made the documentation self-contained: benchmark harness and Node.js addon
   are no longer referenced as part of this repository.
+- feat(node): added native N-API bindings as npm package `railid` 1.0.0.
+  Sync APIs (`generate`, `generateOsOnly`, `generateMany`,
+  `generateManyEncoded`, `decode`, `version`) and async bulk APIs
+  (`generateManyAsync`, `generateManyEncodedAsync`) are included.
+- Linux ships both a TPM binary (requires `libtss2`) and an OS-only binary;
+  `index.js` falls back to OS-only when the TPM binary cannot be loaded.
+  Windows ships TPM, macOS ships OS-only.
+- Added a GitHub Actions matrix for Linux x64, Windows x64, macOS x64/arm64,
+  and npm tarball assembly. **npm publication is intentionally left for the
+  final review step.**
+

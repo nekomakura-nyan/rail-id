@@ -1,0 +1,40 @@
+{
+  "name": "railid",
+  "version": "1.0.0",
+  "description": "Native N-API bindings for RailID: 192-bit timestamp-first identifiers with TPM 2.0 + OS CSPRNG randomness",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nekomakura-nyan/rail-id.git",
+    "directory": "node"
+  },
+  "homepage": "https://github.com/nekomakura-nyan/rail-id",
+  "bugs": {
+    "url": "https://github.com/nekomakura-nyan/rail-id/issues"
+  },
+  "keywords": [
+    "railid",
+    "identifier",
+    "uuid",
+    "tpm",
+    "napi",
+    "native"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "*.node",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node scripts/build.js",
+    "test": "node test.js",
+    "pack:check": "npm pack --dry-run"
+  }
+}

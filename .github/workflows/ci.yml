@@ -50,3 +50,82 @@ jobs:
         env:
           RUSTDOCFLAGS: "-D warnings"
         run: cargo doc --no-deps --features tpm
+
+  node:
+    name: node (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            target: linux-x64
+          - os: windows-2022
+            target: win32-x64
+          - os: macos-15-intel
+            target: darwin-x64
+          - os: macos-latest
+            target: darwin-arm64
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.88"
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
+      - name: Install TSS development files (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libtss2-dev
+
+      - name: Build native addon
+        working-directory: node
+        run: node scripts/build.js
+
+      - name: Test native addon
+        working-directory: node
+        run: node test.js
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: railid-${{ matrix.target }}
+          path: node/*.node
+          if-no-files-found: error
+
+  node-package:
+    name: node package
+    needs: node
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: railid-*
+          path: node
+          merge-multiple: true
+
+      - name: Build tarball
+        working-directory: node
+        run: npm pack
+
+      - name: Verify tarball contents
+        working-directory: node
+        run: |
+          tar -tzf railid-1.0.0.tgz
+          test "$(tar -tzf railid-1.0.0.tgz | grep -c '\.node$')" -eq 4
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: railid-npm-package
+          path: node/railid-1.0.0.tgz
+          if-no-files-found: error
+

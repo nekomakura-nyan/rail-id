@@ -301,6 +301,21 @@ railid inspect <id>
 `--degraded`) returns `TpmUnavailable`; build with `--features tpm` or install
 with `cargo install railid --features tpm` for the standard profile.
 
+## Node.js
+
+Native N-API bindings live in [`node/`](node/README.md). The npm package name is
+`railid`; it exposes sync single/batch APIs and async batch APIs.
+
+```bash
+cd node
+npm run build
+npm test
+```
+
+Linux TPM builds need `pkg-config` and `libtss2-dev`. The package is prepared
+with TPM and OS-only binaries for Linux, TPM for Windows, and OS-only for macOS.
+See [`node/README.md`](node/README.md) for the API and fallback behavior.
+
 ## Testing
 
 ```bash
