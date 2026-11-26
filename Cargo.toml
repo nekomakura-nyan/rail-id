@@ -1,0 +1,38 @@
+[package]
+name = "railid"
+version = "1.0.0"
+edition = "2021"
+rust-version = "1.85"
+authors = ["Nekomakura"]
+description = "RailID v1: 192-bit timestamp-first identifiers with TPM 2.0 + OS CSPRNG randomness"
+readme = "README.crate.md"
+license = "MIT"
+repository = "https://github.com/nekomakura-nyan/rail-id"
+homepage = "https://github.com/nekomakura-nyan/rail-id"
+documentation = "https://docs.rs/railid"
+publish = ["crates-io"]
+keywords = ["identifier", "uuid", "tpm", "timestamp", "base64url"]
+categories = ["data-structures", "cryptography"]
+
+[lib]
+name = "railid"
+path = "src/lib.rs"
+
+[[bin]]
+name = "railid"
+path = "src/bin/railid.rs"
+
+[features]
+default = []
+# TPM 2.0 hybrid profile. This enables the platform backend in `railid-tpm`.
+# Linux needs pkg-config and libtss2-dev; Windows uses TBS.
+tpm = ["dep:railid-tpm", "railid-tpm/linux", "railid-tpm/windows"]
+
+[dependencies]
+# The core crate intentionally has only this direct dependency.
+getrandom = "0.4"
+railid-tpm = { version = "1.0", path = "railid-tpm", optional = true }
+
+[package.metadata.docs.rs]
+# Core docs must not require a TPM/TSS installation.
+no-default-features = true

@@ -1,0 +1,32 @@
+[package]
+name = "railid-tpm"
+version = "1.0.0"
+edition = "2021"
+rust-version = "1.85"
+description = "TPM 2.0 GetRandom backend for RailID"
+readme = "README.md"
+license = "MIT"
+authors = ["Nekomakura"]
+repository = "https://github.com/nekomakura-nyan/rail-id"
+homepage = "https://github.com/nekomakura-nyan/rail-id"
+documentation = "https://docs.rs/railid-tpm"
+publish = ["crates-io"]
+keywords = ["tpm", "entropy", "random", "railid"]
+categories = ["cryptography", "hardware-support"]
+
+[features]
+default = []
+# Enable the Linux TSS backend. The `railid` crate enables this through its
+# `tpm` feature.
+linux = ["dep:tss-esapi"]
+# Enable the Windows TBS backend.
+windows = ["dep:windows-sys"]
+
+[target.'cfg(target_os = "linux")'.dependencies]
+tss-esapi = { version = "7.7", optional = true }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows-sys = { version = "0.61", optional = true, features = ["Win32_System_TpmBaseServices"] }
+
+[package.metadata.docs.rs]
+no-default-features = true
