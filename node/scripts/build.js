@@ -40,9 +40,9 @@ function outputName(kind) {
   throw new Error(`unsupported platform: ${process.platform}/${process.arch}`);
 }
 
-function copyAddon(name) {
+function copyAddon(name, sourceDir = targetDir) {
   const source = path.join(
-    targetDir,
+    sourceDir,
     process.platform === 'win32'
       ? 'railid_node.dll'
       : process.platform === 'darwin'
@@ -70,8 +70,16 @@ if (process.platform === 'win32') {
   runCargo(['build', '--release', '--no-default-features']);
   copyAddon(outputName('os'));
 } else if (process.platform === 'darwin') {
-  runCargo(['build', '--release', '--no-default-features']);
-  copyAddon(outputName('os'));
+  // macOS ships both architectures. Build both from the same host; the macOS
+  // SDK is universal. Install the Rust targets first:
+  //   rustup target add x86_64-apple-darwin aarch64-apple-darwin
+  for (const [target, name] of [
+    ['x86_64-apple-darwin', 'railid.darwin-x64.node'],
+    ['aarch64-apple-darwin', 'railid.darwin-arm64.node'],
+  ]) {
+    runCargo(['build', '--release', '--no-default-features', '--target', target]);
+    copyAddon(name, path.join(nodeDir, 'target', target, 'release'));
+  }
 } else {
   throw new Error(`unsupported platform: ${process.platform}/${process.arch}`);
 }
