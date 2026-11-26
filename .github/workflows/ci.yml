@@ -121,7 +121,7 @@ jobs:
         working-directory: node
         run: |
           tar -tzf railid-1.0.0.tgz
-          test "$(tar -tzf railid-1.0.0.tgz | grep -c '\.node$')" -eq 4
+          test "$(tar -tzf railid-1.0.0.tgz | grep -c '\.node$')" -eq 5
 
       - uses: actions/upload-artifact@v7
         with:
