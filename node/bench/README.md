@@ -17,6 +17,29 @@ npm install
 npm run bench
 ```
 
+### Raspberry Pi 4 (arm64 Linux)
+
+The npm package ships `railid.linux-arm64-gnu.node`, so the Pi needs no Rust
+toolchain. `nanoid` 6 requires Node.js 22 or newer.
+
+```bash
+# on the Pi, from a checkout or an unpacked npm tarball with bench/ alongside index.js
+cd node/bench
+npm install
+node bench.mjs > results/YYYYMMDD-rpi4-arm64-native-vs-uuid-nanoid.md
+node multithread.mjs > results/YYYYMMDD-rpi4-arm64-multithread-scaling.md
+```
+
+For comparable numbers, fix the CPU governor and let the board cool down:
+
+```bash
+echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+vcgencmd measure_temp
+```
+
+The multithread harness includes 6, 8 and 12 workers; on a 4-core Pi 4 those
+rows measure oversubscription, not additional parallelism.
+
 Write a result file:
 
 ```bash
