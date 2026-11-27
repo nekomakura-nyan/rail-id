@@ -4,14 +4,13 @@
 //! These APIs add scoped supervisor workers, exact 150-bit OS extraction, TPM
 //! 64-byte reads, streaming consumers, and contiguous encoded batches.
 
-use std::time::SystemTime;
-
+use crate::clock::TickClock;
 use crate::id::{EncodedBatch, RailId, ENCODED_LEN, RANDOM_ACQUIRE_BYTES};
 use crate::os_random::OsBitReader;
 use crate::rand::combine_hybrid;
 use crate::{
-    generate_os_only, generate_with_source, ticks_from_system_time, Profile, RailIdError,
-    RandomSource, SystemRandomSource, BULK_MIN_IDS_PER_WORKER, TPM_BULK_READ_BYTES,
+    generate_os_only, generate_with_source, Profile, RailIdError, RandomSource, SystemRandomSource,
+    BULK_MIN_IDS_PER_WORKER, TPM_BULK_READ_BYTES,
 };
 
 fn reserve_vec<T>(count: usize) -> Result<Vec<T>, RailIdError> {
@@ -239,9 +238,10 @@ pub fn generate_many_with_source<S: RandomSource + ?Sized>(
     match profile {
         Profile::TpmHybrid => generate_many_tpm(count, source),
         Profile::OsOnlyDegraded => {
+            let mut clock = TickClock::new()?;
             let mut ids = reserve_vec(count)?;
             for _ in 0..count {
-                let ticks = ticks_from_system_time(SystemTime::now())?;
+                let ticks = clock.now()?;
                 ids.push(generate_with_source(profile, ticks, source)?);
             }
             Ok(ids)
@@ -295,9 +295,10 @@ fn generate_os_chunk(count: usize) -> Result<Vec<RailId>, RailIdError> {
     }
 
     let mut reader = OsBitReader::new();
+    let mut clock = TickClock::new()?;
     let mut ids = reserve_vec(count)?;
     for _ in 0..count {
-        let ticks = ticks_from_system_time(SystemTime::now())?;
+        let ticks = clock.now()?;
         let random = reader.next_150()?;
         ids.push(RailId::from_parts(ticks, random)?);
     }
@@ -312,9 +313,10 @@ fn generate_os_strings_chunk(count: usize) -> Result<Vec<String>, RailIdError> {
     }
 
     let mut reader = OsBitReader::new();
+    let mut clock = TickClock::new()?;
     let mut strings = reserve_vec(count)?;
     for _ in 0..count {
-        let ticks = ticks_from_system_time(SystemTime::now())?;
+        let ticks = clock.now()?;
         let random = reader.next_150()?;
         let id = RailId::from_parts(ticks, random)?;
         strings.push(id.encode());
@@ -342,8 +344,9 @@ where
     }
 
     let mut reader = OsBitReader::new();
+    let mut clock = TickClock::new()?;
     for _ in 0..count {
-        let ticks = ticks_from_system_time(SystemTime::now())?;
+        let ticks = clock.now()?;
         let random = reader.next_150()?;
         let id = RailId::from_parts(ticks, random)?;
         let encoded = id.encode_array();
@@ -392,8 +395,9 @@ fn fill_os_encoded_segment(segment: &mut [u8]) -> Result<(), RailIdError> {
     }
 
     let mut reader = OsBitReader::new();
+    let mut clock = TickClock::new()?;
     for index in 0..count {
-        let ticks = ticks_from_system_time(SystemTime::now())?;
+        let ticks = clock.now()?;
         let random = reader.next_150()?;
         let id = RailId::from_parts(ticks, random)?;
         let encoded = id.encode_array();
@@ -465,9 +469,11 @@ where
         return Ok(());
     }
 
+    let mut clock = TickClock::new()?;
+
     // A single ID should not waste a 64-byte TPM read.
     if count == 1 {
-        let ticks = ticks_from_system_time(SystemTime::now())?;
+        let ticks = clock.now()?;
         let id = generate_with_source(Profile::TpmHybrid, ticks, source)?;
         return consume(id);
     }
@@ -478,7 +484,7 @@ where
     };
 
     for _ in 0..count {
-        let ticks = ticks_from_system_time(SystemTime::now())?;
+        let ticks = clock.now()?;
         let tpm_random = stream.next(&mut *source)?;
 
         let mut os_random = [0u8; RANDOM_ACQUIRE_BYTES];

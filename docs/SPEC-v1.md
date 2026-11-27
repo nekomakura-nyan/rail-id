@@ -616,9 +616,9 @@ by the Rust implementation in this repository.
    OS-only results are not globally chronological across worker chunks.
 9. **OS randomness buffer.** Each OS-only bulk worker uses a bounded 8 KiB
    `getrandom` buffer (`OS_RANDOM_BUFFER_BYTES`) and consumes exactly 150 bits
-   per ID across byte boundaries. This avoids one OS call per ID and avoids
-   discarding two bits per ID. The buffer is transient and per worker; twelve
-   workers use about 96 KiB total.
+   per ID across byte boundaries. The single-ID OS path also uses a thread-local
+   8 KiB byte pool, refilled only when exhausted. These buffers are transient
+   and per thread; twelve workers use about 96 KiB total.
 10. **Streaming strings.** `for_each_many_strings` delivers strings to a
     `Fn(String) + Send + Sync` consumer inside the OS-only workers instead of
     returning a `Vec<String>`. OS-only consumers are invoked concurrently and in
@@ -633,4 +633,8 @@ by the Rust implementation in this repository.
 12. **Minimal dependencies.** The core crate depends only on `getrandom`. The
     fixed 32-character Base64URL form is encoded and decoded locally; the
     optional TPM backend is the separate `railid-tpm` crate.
+13. **Timestamp cache.** Single-ID and bulk-worker paths cache the current
+    100 ms tick and refresh it at most once per tick. A wall-clock rollback
+    cannot move the emitted timestamp backwards. Explicit-time APIs bypass the
+    cache.
 

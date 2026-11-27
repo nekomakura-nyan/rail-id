@@ -4,7 +4,7 @@
 //! APIs. Bulk work runs on the libuv thread pool through `AsyncTask`, while
 //! the TPM backend remains serialized by its process-wide mutex.
 
-use napi::bindgen_prelude::{AsyncTask, Buffer, Result};
+use napi::bindgen_prelude::{AsyncTask, Buffer, BufferSlice, Result};
 use napi::{Env, Task};
 use napi_derive::napi;
 
@@ -60,6 +60,29 @@ pub fn generate_os_only() -> Result<String> {
     railid::generate_os_only()
         .map(|id| id.encode())
         .map_err(to_napi_error)
+}
+
+/// Generate one RailID with the TPM hybrid profile and return its 32 ASCII
+/// bytes as a Buffer, without creating a JavaScript string.
+#[napi]
+pub fn generate_buffer(env: Env) -> Result<Buffer> {
+    railid::generate()
+        .map_err(to_napi_error)
+        .and_then(|id| encoded_buffer(&env, id))
+}
+
+/// Generate one RailID with the OS-only profile and return its 32 ASCII bytes
+/// as a Buffer, without creating a JavaScript string.
+#[napi]
+pub fn generate_os_only_buffer(env: Env) -> Result<Buffer> {
+    railid::generate_os_only()
+        .map_err(to_napi_error)
+        .and_then(|id| encoded_buffer(&env, id))
+}
+
+fn encoded_buffer(env: &Env, id: RailId) -> Result<Buffer> {
+    let encoded = id.encode_array();
+    BufferSlice::copy_from(env, encoded.as_bytes())?.into_buffer(env)
 }
 
 /// Generate `count` IDs as a JavaScript string array.

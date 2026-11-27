@@ -49,7 +49,9 @@ construct any well-formed value.
 
 The timestamp is the upper 42 bits at 100 ms resolution. It is derived from the
 system clock, which can be wrong, adjusted, or rolled back. It is not a trusted
-timestamp and must not be used as one.
+timestamp and must not be used as one. The default path caches the current tick
+for at most 100 ms and never moves backwards within a thread; this is within the
+format's resolution.
 
 ## Non-goals
 

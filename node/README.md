@@ -43,6 +43,8 @@ console.log(decoded.timestampMs, decoded.randomHex, decoded.encoded);
 |---|---|---|
 | `generate()` | `string` | TPM hybrid profile; throws `TpmUnavailable` if unavailable |
 | `generateOsOnly()` | `string` | Explicit degraded profile |
+| `generateBuffer()` | `Buffer` | TPM profile as 32 ASCII bytes, no JS string |
+| `generateOsOnlyBuffer()` | `Buffer` | OS-only as 32 ASCII bytes, no JS string |
 | `generateMany(count, osOnly?)` | `string[]` | Sync; `osOnly` defaults to `false` |
 | `generateManyEncoded(count, osOnly?)` | `Buffer` | Sync; `count * 32` bytes |
 | `generateManyAsync(count, osOnly?)` | `Promise<string[]>` | Bulk work off the JS thread |
@@ -58,6 +60,10 @@ Limits:
 - TPM: 1,024 IDs
 
 Counts above the limit are rejected before allocation.
+
+`generateBuffer()` avoids the JS string but still allocates a Node Buffer per
+call; for throughput use `generateManyEncoded()` or
+`generateManyEncodedAsync()`, which allocate one contiguous buffer.
 
 ## Linux and TPM
 

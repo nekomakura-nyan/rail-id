@@ -41,6 +41,10 @@ function consumeEncodedBatch(batch) {
   }
 }
 
+function consumeSingleBuffer(buffer) {
+  sink = (sink + buffer[0] + buffer[31]) | 0;
+}
+
 function timeOnce(fn) {
   const started = process.hrtime.bigint();
   fn();
@@ -181,6 +185,17 @@ rows.push(
   )
 );
 
+rows.push(
+  await measure(
+    'RailID OS-only single Buffer',
+    1,
+    CONFIG.singleIterations,
+    CONFIG.singleSamples,
+    CONFIG.singleWarmups,
+    () => consumeSingleBuffer(railid.generateOsOnlyBuffer())
+  )
+);
+
 if (tpmAvailable === true) {
   rows.push(
     await measure(
@@ -249,7 +264,11 @@ console.log('');
 console.log('| Workload | Output | Median/ID | Throughput | Relative to UUIDv4 |');
 console.log('|---|---:|---:|---:|---:|');
 for (const row of rows) {
-  const output = row.name.includes('batch') ? '32-byte slice' : 'string';
+  const output = row.name.includes('batch')
+    ? '32-byte slice'
+    : row.name.includes('Buffer')
+      ? '32-byte Buffer'
+      : 'string';
   const relative = row.opsPerSec / uuidRow.opsPerSec;
   const relativeText = row.name.startsWith('UUIDv4')
     ? '1.00x'

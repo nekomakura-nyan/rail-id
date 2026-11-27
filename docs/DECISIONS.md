@@ -139,3 +139,21 @@ OS-only generation, bulk generation, and a `TpmUnavailable` stub.
 **Consequences:** `cargo add railid` builds anywhere. The standard profile is
 explicit (`--features tpm`). Publishing requires `railid-tpm` to be released
 before `railid`. The core crate has no `tss-esapi` or `windows-sys` dependency.
+
+## ADR-009: Thread-local OS pool and cached 100 ms clock
+
+**Status:** Accepted (2026-11-27)
+
+**Context:** The single-ID OS-only path called `getrandom` once per ID and called
+`SystemTime::now` for every timestamp. Benchmarking showed this dominated
+`generate_os_only`, while the bulk path already amortized both costs.
+
+**Decision:** Keep a thread-local 8 KiB OS byte pool for the single-ID and
+hybrid OS half, and a thread-local 100 ms `TickClock` that refreshes once per
+tick and never moves backwards. Bulk workers use one `TickClock` per worker.
+Explicit-time APIs bypass both caches.
+
+**Consequences:** `generate_os_only` no longer pays a per-ID OS CSPRNG call. The
+timestamp remains within its 100 ms resolution. The caches are per thread, so
+concurrent generation needs no lock. TPM hardware latency still dominates the
+standard profile.

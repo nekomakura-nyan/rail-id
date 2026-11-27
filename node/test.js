@@ -9,6 +9,10 @@ async function main() {
 
   const osId = railid.generateOsOnly();
   assert.match(osId, /^[A-Za-z0-9_-]{32}$/);
+  const osBuffer = railid.generateOsOnlyBuffer();
+  assert.ok(Buffer.isBuffer(osBuffer));
+  assert.equal(osBuffer.length, 32);
+  assert.equal(railid.decode(osBuffer.toString('ascii')).encoded, osBuffer.toString('ascii'));
   const decoded = railid.decode(osId);
   assert.equal(decoded.encoded, osId);
   assert.ok(decoded.timestampMs > 0);
@@ -55,6 +59,9 @@ async function main() {
   try {
     const tpmId = railid.generate();
     assert.match(tpmId, /^[A-Za-z0-9_-]{32}$/);
+    const tpmBuffer = railid.generateBuffer();
+    assert.ok(Buffer.isBuffer(tpmBuffer));
+    assert.equal(tpmBuffer.length, 32);
     const tpmBatch = railid.generateManyEncoded(4, false);
     assert.equal(tpmBatch.length, 4 * 32);
     const tpmMany = railid.generateMany(4);

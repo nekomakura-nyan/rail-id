@@ -21,9 +21,10 @@ invariants. `tests/conformance.rs` contains known vectors and round-trip checks.
 | Module | Responsibility |
 |---|---|
 | `lib.rs` | Public single-ID API, `Profile`, version, timestamp conversion |
+| `clock.rs` | Thread-local 100 ms `TickClock` for single-ID/bulk timestamps |
 | `id.rs` | 192-bit layout, Base64URL, `RailId`, `EncodedRailId`, `EncodedBatch` |
 | `error.rs` | `RailIdError` and display/error integration |
-| `rand.rs` | `RandomSource`, OS CSPRNG source, hybrid XOR/reduction |
+| `rand.rs` | `RandomSource`, thread-local OS byte pool, hybrid XOR/reduction |
 | `tpm.rs` | Feature gate over the optional `railid-tpm` backend |
 | `railid-tpm/src/lib.rs` | Platform `TPM2_GetRandom` backend (TSS ESAPI / TBS) |
 | `os_random.rs` | Bounded OS randomness buffer + exact 150-bit extraction |
@@ -45,6 +46,11 @@ OS CSPRNG(19 bytes) ──────┴─ XOR -> retain upper 150 bits
 
 - `generate` uses `Profile::TpmHybrid` when the `tpm` feature is enabled;
   otherwise it returns `TpmUnavailable`.
+- The default single-ID path uses a thread-local 8 KiB OS byte pool instead of
+  calling `getrandom` once per ID. The TPM half still uses fresh TPM bytes.
+- Timestamps use a thread-local `TickClock`: the 100 ms tick is refreshed at
+  most once per tick, and a wall-clock rollback cannot move the emitted
+  timestamp backwards. Explicit-time APIs bypass the cache.
 - `generate_with_source` is the deterministic/testable core; it accepts a
   `RandomSource` and explicit ticks.
 - A TPM or OS failure returns an error. There is no OS-only fallback.
@@ -84,7 +90,8 @@ library dependency.
 - Exactly 150 bits are consumed per ID across byte boundaries
   (`OsBitReader`), so the two excess bits are not wasted.
 - Small batches stay sequential to avoid thread-startup overhead.
-- Timestamps are captured per ID at assembly time.
+- Timestamps are captured per ID at assembly time; each worker uses its own
+  100 ms `TickClock`.
 - The returned order is chunk order; global chronological order is not
   guaranteed across workers.
 

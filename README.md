@@ -102,6 +102,9 @@ See [`docs/BUILD.md`](docs/BUILD.md) for details.
   `generate_os_only()`.
 - Bulk OS-only generation uses supervisor workers, a bounded 8 KiB OS random
   buffer per worker, and exact 150-bit extraction.
+- Single-ID OS generation uses a thread-local 8 KiB OS byte pool and a cached
+  100 ms tick clock. `generateBuffer()` / `generateOsOnlyBuffer()` return the
+  32 encoded bytes without a JS string.
 - RailID is an identifier generator, not an authentication or one-time-token
   system. Single use, expiry, and revocation belong in the application. See
   [`docs/SECURITY.md`](docs/SECURITY.md).

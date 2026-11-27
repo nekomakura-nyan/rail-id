@@ -1,10 +1,60 @@
 //! Cryptographically secure randomness acquisition and hybrid combination.
 
+use std::cell::RefCell;
+
 use crate::tpm;
 use crate::RailIdError;
+use crate::OS_RANDOM_BUFFER_BYTES;
 
 /// Number of bytes acquired from each entropy source for one RailID.
 pub const ACQUIRE_BYTES: usize = crate::id::RANDOM_ACQUIRE_BYTES;
+
+/// A thread-local byte pool for the single-ID OS CSPRNG path.
+///
+/// Bulk generation already uses a bounded 8 KiB buffer per worker. The
+/// single-ID path previously called `getrandom` once per ID; that dominated the
+/// cost of `generate_os_only`. The pool keeps the same bound and refills only
+/// when exhausted.
+struct OsBytePool {
+    buffer: [u8; OS_RANDOM_BUFFER_BYTES],
+    position: usize,
+}
+
+impl OsBytePool {
+    const fn new() -> Self {
+        Self {
+            buffer: [0u8; OS_RANDOM_BUFFER_BYTES],
+            // Start exhausted so the first request refills from the OS.
+            position: OS_RANDOM_BUFFER_BYTES,
+        }
+    }
+
+    fn fill(&mut self, out: &mut [u8]) -> Result<(), RailIdError> {
+        if out.is_empty() {
+            return Ok(());
+        }
+
+        // The public `RandomSource` trait permits arbitrary lengths. Bypass the
+        // pool for requests larger than the buffer instead of looping.
+        if out.len() > self.buffer.len() {
+            return getrandom::fill(out).map_err(|_| RailIdError::OsRandomFailure);
+        }
+
+        if self.position + out.len() > self.buffer.len() {
+            getrandom::fill(&mut self.buffer).map_err(|_| RailIdError::OsRandomFailure)?;
+            self.position = 0;
+        }
+
+        let end = self.position + out.len();
+        out.copy_from_slice(&self.buffer[self.position..end]);
+        self.position = end;
+        Ok(())
+    }
+}
+
+thread_local! {
+    static OS_BYTE_POOL: RefCell<OsBytePool> = const { RefCell::new(OsBytePool::new()) };
+}
 
 /// A source of the two independent entropy inputs required by the TPM profile.
 ///
@@ -36,7 +86,7 @@ impl RandomSource for SystemRandomSource {
     }
 
     fn fill_os(&mut self, out: &mut [u8]) -> Result<(), RailIdError> {
-        getrandom::fill(out).map_err(|_| RailIdError::OsRandomFailure)
+        OS_BYTE_POOL.with(|pool| pool.borrow_mut().fill(out))
     }
 }
 

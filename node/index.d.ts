@@ -15,6 +15,12 @@ export declare function generate(): string;
 /** Generate one RailID with the explicitly degraded OS-only profile. */
 export declare function generateOsOnly(): string;
 
+/** Generate one TPM-profile RailID as 32 ASCII bytes, without a JS string. */
+export declare function generateBuffer(): Buffer;
+
+/** Generate one OS-only RailID as 32 ASCII bytes, without a JS string. */
+export declare function generateOsOnlyBuffer(): Buffer;
+
 /** Generate `count` IDs synchronously as strings. */
 export declare function generateMany(count: number, osOnly?: boolean): string[];
 

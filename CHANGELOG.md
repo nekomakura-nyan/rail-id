@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-11-27
+
+- perf(core): added a thread-local 8 KiB OS byte pool for single-ID
+  `generate_os_only` / hybrid OS half. `generate_os_only` dropped from about
+  201 ns to 154 ns per ID in the Node benchmark.
+- perf(core): added a thread-local 100 ms `TickClock`; single-ID and bulk-worker
+  timestamps refresh at most once per tick and never move backwards. Explicit
+  time APIs bypass the cache.
+- feat(node): added `generateBuffer()` and `generateOsOnlyBuffer()` returning
+  32 ASCII bytes without a JS string. A per-call Buffer allocation is slower
+  than the string path; batch APIs remain the throughput path.
+- bench(node): optimized results: RailID OS-only 6.51 Mops/s single, 27.43
+  Mops/s at 12 workers; encoded batch 66.4 Mops/s; NanoID 12.6 single / 53.34
+  at 12 workers; UUIDv4 3.54 / 12.67. See the `*-optimized.md` result files.
+
 ## 1.0.0 - 2026-11-25
 
 - Initial public release of `railid` and `railid-tpm` on crates.io.

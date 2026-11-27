@@ -38,6 +38,7 @@
 #![warn(missing_docs)]
 
 mod bulk;
+mod clock;
 mod error;
 mod id;
 mod os_random;
@@ -135,7 +136,9 @@ pub fn generate_string() -> Result<String, RailIdError> {
 ///
 /// See [`generate`].
 pub fn generate_with_profile(profile: Profile) -> Result<RailId, RailIdError> {
-    generate_with_profile_and_time(profile, SystemTime::now())
+    let ticks = clock::current_ticks()?;
+    let mut source = SystemRandomSource;
+    generate_with_source(profile, ticks, &mut source)
 }
 
 /// Generate a degraded RailID from the OS CSPRNG only.
