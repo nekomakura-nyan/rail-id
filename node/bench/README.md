@@ -34,7 +34,14 @@ node multithread.mjs > results/YYYYMMDD-host-multithread-scaling.md
 Worker counts: 1, 2, 4, 6, 8, 12. Worker startup and teardown are excluded
 from the timed rounds; message dispatch is included.
 
-Latest local results (after Latin-1 N-API strings):
+Latest local results (final):
+
+- [`results/20261127-windows-amd64-native-vs-uuid-nanoid-final.md`](results/20261127-windows-amd64-native-vs-uuid-nanoid-final.md)
+- [`results/20261127-windows-amd64-multithread-scaling-final.md`](results/20261127-windows-amd64-multithread-scaling-final.md)
+- [`results/20261127-windows-amd64-batch-comparison-final.md`](results/20261127-windows-amd64-batch-comparison-final.md)
+- [`results/20261127-windows-amd64-nanoid-analysis.md`](results/20261127-windows-amd64-nanoid-analysis.md) — component cost breakdown
+
+Previous run after Latin-1 N-API strings:
 
 - [`results/20261127-windows-amd64-native-vs-uuid-nanoid-latin1.md`](results/20261127-windows-amd64-native-vs-uuid-nanoid-latin1.md)
 - [`results/20261127-windows-amd64-multithread-scaling-latin1.md`](results/20261127-windows-amd64-multithread-scaling-latin1.md)
@@ -89,13 +96,13 @@ Current optimized run:
 
 | Workload | Median/ID | Throughput |
 |---|---:|---:|
-| UUIDv4 (uuid) | 277.17 ns | 3.61 Mops/s |
-| NanoID 21 | 83.57 ns | 11.97 Mops/s |
-| RailID OS-only string | 104.75 ns | 9.55 Mops/s |
-| RailID OS-only Buffer | 616.87 ns | 1.62 Mops/s |
-| RailID TPM string | 4.59 ms | 217.73 ops/s |
-| RailID OS-only encoded batch | 14.20 ns | 70.41 Mops/s |
-| RailID OS-only encoded batch async | 16.51 ns | 60.58 Mops/s |
+| UUIDv4 (uuid) | 293.69 ns | 3.40 Mops/s |
+| NanoID 21 | 80.44 ns | 12.43 Mops/s |
+| RailID OS-only string | 107.05 ns | 9.34 Mops/s |
+| RailID OS-only Buffer | 646.90 ns | 1.55 Mops/s |
+| RailID TPM string | 4.69 ms | 213.43 ops/s |
+| RailID OS-only encoded batch | 10.69 ns | 93.58 Mops/s |
+| RailID OS-only encoded batch async | 10.67 ns | 93.71 Mops/s |
 
 The single-ID Buffer call allocates a Node Buffer per call and is therefore
 slower than the string path; use the batch APIs for throughput.
@@ -106,9 +113,9 @@ On the reference 6-core / 12-thread Ryzen 5 8500G:
 
 | Workload | 1 worker | 12 workers | Scaling |
 |---|---:|---:|---:|
-| NanoID 21 | 12.39 Mops/s | 46.23 Mops/s | 3.73x |
-| UUIDv4 (uuid) | 2.86 Mops/s | 10.79 Mops/s | 3.77x |
-| RailID OS-only | 8.39 Mops/s | 39.40 Mops/s | 4.70x |
+| NanoID 21 | 12.14 Mops/s | 56.39 Mops/s | 4.65x |
+| UUIDv4 (uuid) | 3.32 Mops/s | 13.22 Mops/s | 3.98x |
+| RailID OS-only | 9.19 Mops/s | 37.34 Mops/s | 4.06x |
 
 NanoID scales to about 3.7-4.8x on this 6-core / 12-thread host; the remaining
 gap is scheduler, message dispatch, and GC overhead. Each worker has its own NanoID
@@ -155,19 +162,19 @@ include content consumption inside the timed region.
 
 | Workload | N | Median/ID | Throughput |
 |---|---:|---:|---:|
-| NanoID 21 string array | 100,000 | 145.42 ns | 6.88 Mops/s |
-| NanoID 21 packed Buffer | 1,000,000 | 89.00 ns | 11.24 Mops/s |
-| NanoID 32 packed Buffer | 1,000,000 | 111.33 ns | 8.98 Mops/s |
-| UUIDv4 string array | 100,000 | 536.21 ns | 1.86 Mops/s |
-| UUIDv4 packed Buffer | 1,000,000 | 307.43 ns | 3.25 Mops/s |
-| RailID OS-only string array | 100,000 | 151.08 ns | 6.62 Mops/s |
-| RailID OS-only encoded batch | 1,000,000 | 14.11 ns | 70.85 Mops/s |
+| NanoID 21 string array | 100,000 | 135.83 ns | 7.36 Mops/s |
+| NanoID 21 packed Buffer | 1,000,000 | 88.77 ns | 11.26 Mops/s |
+| NanoID 32 packed Buffer | 1,000,000 | 114.10 ns | 8.76 Mops/s |
+| UUIDv4 string array | 100,000 | 556.72 ns | 1.80 Mops/s |
+| UUIDv4 packed Buffer | 1,000,000 | 315.54 ns | 3.17 Mops/s |
+| RailID OS-only string array | 100,000 | 129.22 ns | 7.74 Mops/s |
+| RailID OS-only encoded batch | 1,000,000 | 11.00 ns | 90.94 Mops/s |
 
 Interpretation:
 
-- For **JS string arrays**, NanoID is still slightly faster; RailID is now about
-  1.04x slower, and UUIDv4 is much slower.
-- For **flat buffers**, RailID's encoded batch is about 6.3x faster than a
+- For **JS string arrays**, RailID is now about 1.05x faster than NanoID in
+  this run, and UUIDv4 is much slower.
+- For **flat buffers**, RailID's encoded batch is about 8.1x faster than a
   NanoID 21-byte packed loop, but it is a single native batch call, not a
   per-ID JS API.
 - NanoID 32 (192 bits) is slower than NanoID 21 (126 bits), as expected.

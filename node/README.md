@@ -65,6 +65,26 @@ Counts above the limit are rejected before allocation.
 call; for throughput use `generateManyEncoded()` or
 `generateManyEncodedAsync()`, which allocate one contiguous buffer.
 
+## Caller-provided buffer API (design, not shipped)
+
+A zero-allocation single-ID API would look like:
+
+```ts
+generateInto(target: Buffer, offset?: number): number;
+generateOsOnlyInto(target: Buffer, offset?: number): number;
+```
+
+- `offset` defaults to 0 and must satisfy `offset + 32 <= target.length`.
+- The function writes 32 ASCII bytes and returns the end offset.
+- It performs no allocation and no JS string creation.
+- It is synchronous only.
+
+This is **not shipped** because N-API buffers can be shared with other JS
+execution contexts, and napi-rs documents mutable `Buffer` access as an aliasing
+hazard. Shipping it safely needs an exclusive-ownership guarantee, a rejection
+of `SharedArrayBuffer`-backed buffers, or a custom writer object. Until then,
+use the batch APIs.
+
 ## Linux and TPM
 
 The Linux TPM binary links against `libtss2` (`tss-esapi`). The package ships

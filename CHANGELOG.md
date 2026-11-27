@@ -6,18 +6,21 @@
   `generate_os_only` / hybrid OS half. `generate_os_only` dropped from about
   201 ns to 154 ns per ID in the Node benchmark.
 - perf(core): added a thread-local 100 ms `TickClock`; single-ID and bulk-worker
-  timestamps refresh at most once per tick and never move backwards. Explicit
-  time APIs bypass the cache.
+  timestamps refresh at most once per tick and never move backwards. Bulk OS-only
+  loops refresh the clock every 4,096 IDs; explicit time APIs bypass the cache.
+- perf(core): retuned bulk worker measurement. On the 6-core/12-thread reference
+  host, 12 workers remained fastest for 1M encoded IDs (93.3 Mops/s tuned run),
+  so `available_parallelism()` keeps the default.
 - feat(node): added `generateBuffer()` and `generateOsOnlyBuffer()` returning
   32 ASCII bytes without a JS string. A per-call Buffer allocation is slower
   than the string path; batch APIs remain the throughput path.
 - perf(node): `generate`, `generateOsOnly`, `generateMany`, and async string
   batches now build JS strings directly with `napi_create_string_latin1` from
   the stack, avoiding a Rust `String` allocation and UTF-8 conversion.
-- bench(node): optimized results: RailID OS-only 9.55 Mops/s single, 39.40
-  Mops/s at 12 workers; string array 151.08 ns/ID; encoded batch 70.85 Mops/s;
-  NanoID 11.97 single / 46.23 at 12 workers; UUIDv4 3.61 / 10.79. See the
-  `*-latin1.md` result files.
+- bench(node): final results: RailID OS-only 9.34 Mops/s single, 37.34 Mops/s at
+  12 workers; string array 129.22 ns/ID; encoded batch 93.58 Mops/s; NanoID
+  12.43 single / 56.39 at 12 workers; UUIDv4 3.40 / 13.22. See the `*-final.md`
+  result files.
 
 ## 1.0.0 - 2026-11-25
 

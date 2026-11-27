@@ -27,6 +27,18 @@ fn zeroed_vec(count: usize) -> Result<Vec<u8>, RailIdError> {
     Ok(values)
 }
 
+/// Refresh a bulk timestamp every N IDs. The format has 100 ms resolution, so
+/// checking the monotonic clock for every ID is unnecessary; 4,096 IDs is far
+/// shorter than a tick at the rates this crate targets.
+const BULK_TIMESTAMP_INTERVAL: usize = 4_096;
+
+fn refresh_ticks(clock: &mut TickClock, ticks: &mut u64, index: usize) -> Result<(), RailIdError> {
+    if index % BULK_TIMESTAMP_INTERVAL == 0 {
+        *ticks = clock.now()?;
+    }
+    Ok(())
+}
+
 /// Recommended number of OS-only workers for a bulk request.
 ///
 /// Returns `0` for `count == 0`, and otherwise caps workers so each chunk is
@@ -239,9 +251,10 @@ pub fn generate_many_with_source<S: RandomSource + ?Sized>(
         Profile::TpmHybrid => generate_many_tpm(count, source),
         Profile::OsOnlyDegraded => {
             let mut clock = TickClock::new()?;
+            let mut ticks = clock.now()?;
             let mut ids = reserve_vec(count)?;
-            for _ in 0..count {
-                let ticks = clock.now()?;
+            for index in 0..count {
+                refresh_ticks(&mut clock, &mut ticks, index)?;
                 ids.push(generate_with_source(profile, ticks, source)?);
             }
             Ok(ids)
@@ -296,9 +309,10 @@ fn generate_os_chunk(count: usize) -> Result<Vec<RailId>, RailIdError> {
 
     let mut reader = OsBitReader::new();
     let mut clock = TickClock::new()?;
+    let mut ticks = clock.now()?;
     let mut ids = reserve_vec(count)?;
-    for _ in 0..count {
-        let ticks = clock.now()?;
+    for index in 0..count {
+        refresh_ticks(&mut clock, &mut ticks, index)?;
         let random = reader.next_150()?;
         ids.push(RailId::from_parts(ticks, random)?);
     }
@@ -314,9 +328,10 @@ fn generate_os_strings_chunk(count: usize) -> Result<Vec<String>, RailIdError> {
 
     let mut reader = OsBitReader::new();
     let mut clock = TickClock::new()?;
+    let mut ticks = clock.now()?;
     let mut strings = reserve_vec(count)?;
-    for _ in 0..count {
-        let ticks = clock.now()?;
+    for index in 0..count {
+        refresh_ticks(&mut clock, &mut ticks, index)?;
         let random = reader.next_150()?;
         let id = RailId::from_parts(ticks, random)?;
         strings.push(id.encode());
@@ -345,8 +360,9 @@ where
 
     let mut reader = OsBitReader::new();
     let mut clock = TickClock::new()?;
-    for _ in 0..count {
-        let ticks = clock.now()?;
+    let mut ticks = clock.now()?;
+    for index in 0..count {
+        refresh_ticks(&mut clock, &mut ticks, index)?;
         let random = reader.next_150()?;
         let id = RailId::from_parts(ticks, random)?;
         let encoded = id.encode_array();
@@ -396,8 +412,9 @@ fn fill_os_encoded_segment(segment: &mut [u8]) -> Result<(), RailIdError> {
 
     let mut reader = OsBitReader::new();
     let mut clock = TickClock::new()?;
+    let mut ticks = clock.now()?;
     for index in 0..count {
-        let ticks = clock.now()?;
+        refresh_ticks(&mut clock, &mut ticks, index)?;
         let random = reader.next_150()?;
         let id = RailId::from_parts(ticks, random)?;
         let encoded = id.encode_array();

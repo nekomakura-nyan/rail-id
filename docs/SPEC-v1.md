@@ -634,7 +634,7 @@ by the Rust implementation in this repository.
     fixed 32-character Base64URL form is encoded and decoded locally; the
     optional TPM backend is the separate `railid-tpm` crate.
 13. **Timestamp cache.** Single-ID and bulk-worker paths cache the current
-    100 ms tick and refresh it at most once per tick. A wall-clock rollback
-    cannot move the emitted timestamp backwards. Explicit-time APIs bypass the
-    cache.
+    100 ms tick and refresh it at most once per tick. Bulk OS-only loops refresh
+    every 4,096 IDs. A wall-clock rollback cannot move the emitted timestamp
+    backwards. Explicit-time APIs bypass the cache.
 

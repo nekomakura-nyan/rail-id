@@ -91,7 +91,7 @@ library dependency.
   (`OsBitReader`), so the two excess bits are not wasted.
 - Small batches stay sequential to avoid thread-startup overhead.
 - Timestamps are captured per ID at assembly time; each worker uses its own
-  100 ms `TickClock`.
+  100 ms `TickClock` and refreshes it every 4,096 IDs.
 - The returned order is chunk order; global chronological order is not
   guaranteed across workers.
 

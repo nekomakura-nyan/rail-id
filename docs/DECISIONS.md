@@ -150,8 +150,10 @@ before `railid`. The core crate has no `tss-esapi` or `windows-sys` dependency.
 
 **Decision:** Keep a thread-local 8 KiB OS byte pool for the single-ID and
 hybrid OS half, and a thread-local 100 ms `TickClock` that refreshes once per
-tick and never moves backwards. Bulk workers use one `TickClock` per worker.
-Explicit-time APIs bypass both caches.
+tick and never moves backwards. Bulk OS-only workers refresh the clock every
+4,096 IDs. Explicit-time APIs bypass both caches. The bulk worker count remains
+`available_parallelism()`; tuning on the reference 12-thread host showed 12
+workers was fastest.
 
 **Consequences:** `generate_os_only` no longer pays a per-ID OS CSPRNG call. The
 timestamp remains within its 100 ms resolution. The caches are per thread, so
