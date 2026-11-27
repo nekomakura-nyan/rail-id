@@ -159,3 +159,28 @@ workers was fastest.
 timestamp remains within its 100 ms resolution. The caches are per thread, so
 concurrent generation needs no lock. TPM hardware latency still dominates the
 standard profile.
+
+## ADR-010: One npm tarball with per-platform prebuilt addons
+
+**Status:** Accepted (2026-11-27)
+
+**Context:** The Node package must load on Linux glibc and musl, arm64, armv7
+and riscv64, on Windows x64 and arm64, and on macOS x64 and arm64. Per-platform
+npm packages (the napi-rs default) would require one manual, OTP-protected
+`npm publish` per platform and a resolver that downloads optional
+dependencies at install time.
+
+**Decision:** Keep a single `@neko-makura/railid` tarball containing every
+prebuilt `*.node`. File names use the runtime tag
+`<platform>-<arch>[-<libc>]`, and `index.js` selects one from
+`process.platform`, `process.arch` and the detected libc. The TPM backend is
+built only for Linux x64 glibc and Windows, where it is tested; musl, arm64,
+armv7 and riscv64 ship the OS-only backend. `scripts/verify.js` checks every
+binary's container format and architecture against its file name, and CI runs
+the addon on native arm64 runners and under QEMU for armv7 and riscv64.
+
+**Consequences:** Installation is a single artifact with no post-install
+network access or optional-dependency resolution, at the cost of a larger
+tarball (about 14 MB before compression). Platforms without a TPM backend fail
+closed for `generate()` and use `generateOsOnly()`. Adding a target means
+adding one build job, one artifact name and one row in the platform table.

@@ -315,9 +315,11 @@ npm run build
 npm test
 ```
 
-Linux TPM builds need `pkg-config` and `libtss2-dev`. The package is prepared
-with TPM and OS-only binaries for Linux, TPM for Windows, and OS-only for macOS.
-See [`node/README.md`](node/README.md) for the API and fallback behavior.
+Linux TPM builds need `pkg-config` and `libtss2-dev`. Prebuilt addons cover
+Linux x64 (glibc TPM + OS-only, musl OS-only), Linux arm64 (glibc + musl),
+Linux armv7 and riscv64 (glibc), Windows x64/arm64 (TPM), and macOS x64/arm64
+(OS-only). See [`node/README.md`](node/README.md) for the platform matrix, API
+and fallback behavior.
 
 The native benchmark against UUIDv4 and NanoID is in
 [`node/bench/`](node/bench/README.md).

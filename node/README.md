@@ -8,6 +8,29 @@ npm install @neko-makura/railid
 
 The package includes prebuilt N-API binaries. Node.js 18 or newer is required.
 
+## Platforms
+
+| Platform | Architecture | libc | Backend |
+|---|---|---|---|
+| Linux | x64 | glibc | TPM (`libtss2`) + OS-only fallback |
+| Linux | x64 | musl | OS-only |
+| Linux | arm64 | glibc | OS-only |
+| Linux | arm64 | musl | OS-only |
+| Linux | armv7 | glibc (hard-float) | OS-only |
+| Linux | riscv64 | glibc | OS-only |
+| Windows | x64 | MSVC | TPM (TBS) |
+| Windows | arm64 | MSVC | TPM (TBS) |
+| macOS | x64 | — | OS-only |
+| macOS | arm64 | — | OS-only |
+
+`index.js` selects the addon from `process.platform`, `process.arch` and, on
+Linux, whether the Node process runs on glibc or musl.
+
+The riscv64 addon targets the `riscv64gc` glibc ABI used by distribution Node
+builds (for example Ubuntu 24.04). Node.js does not publish official riscv64
+binaries; use a distribution package.
+
+
 ## Usage
 
 ```js
@@ -87,8 +110,8 @@ use the batch APIs.
 
 ## Linux and TPM
 
-The Linux TPM binary links against `libtss2` (`tss-esapi`). The package ships
-two Linux x64 binaries:
+The Linux x64 glibc TPM binary links against `libtss2` (`tss-esapi`). The
+package ships two Linux x64 glibc binaries:
 
 - `railid-tpm.linux-x64-gnu.node` — TPM backend; needs `libtss2`
 - `railid.linux-x64-gnu.node` — OS-only; no TSS dependency
@@ -104,6 +127,10 @@ Debian/Ubuntu TPM users need:
 sudo apt install libtss2
 ```
 
+Alpine, arm64, armv7 and riscv64 ship the OS-only backend only. Those
+platforms load `railid.<platform>-<arch>[-<libc>].node` directly, so `generate()`
+throws `TpmUnavailable` and `generateOsOnly()` is the supported profile.
+
 Windows uses the system TBS service (`Tbs.dll`) and needs no extra DLL. macOS
 ships the OS-only backend.
 
@@ -116,13 +143,25 @@ Requirements:
 - Node.js 18+
 
 ```bash
-npm run build          # platform default
+npm run build          # host default
 npm run build -- --os-only
+npm run build -- --target linux-arm64-musl   # cross target, OS-only
+npm run verify         # check every .node binary against its target tag
 npm test
 ```
 
-On Linux the default build produces both TPM and OS-only binaries. On Windows
-it produces the TPM binary. On macOS it produces the OS-only binary.
+`node scripts/build.js --list` prints the supported targets. On Linux the
+default build produces both TPM and OS-only binaries for x64; other targets
+produce the OS-only binary. On Windows it produces the TPM binary. On macOS it
+produces both OS-only slices.
+
+Cross-compiling without a matching host is easiest in a container. The helper
+installs the toolchain for the requested target:
+
+```bash
+docker run --rm -v "$PWD:/src" -w /src/node rust:1.88-alpine \
+  sh scripts/build-in-docker.sh linux-arm64-musl
+```
 
 ## Benchmarks
 
