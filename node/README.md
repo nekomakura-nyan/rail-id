@@ -98,6 +98,11 @@ npm test
 On Linux the default build produces both TPM and OS-only binaries. On Windows
 it produces the TPM binary. On macOS it produces the OS-only binary.
 
+## Benchmarks
+
+The Node addon benchmark against UUIDv4 and NanoID is in
+[`bench/`](bench/README.md). It includes the latest Windows result.
+
 ## Security notes
 
 RailID is an identifier generator. This package does not provide single-use

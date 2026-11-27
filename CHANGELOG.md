@@ -26,4 +26,9 @@
 - Added a GitHub Actions matrix for Linux x64, Windows x64, macOS x64/arm64,
   and npm tarball assembly. **npm publication is intentionally left for the
   final review step.**
+- bench(node): added `node/bench/` comparing native RailID with `uuid` 14.0.3
+  and `nanoid` 6.0.2 under forced string materialization. Local Windows result:
+  UUIDv4 1.52 Mops/s, NanoID 6.31 Mops/s, RailID OS-only 2.90 Mops/s, RailID
+  TPM 213 ops/s, encoded batch 29.6-36.4 Mops/s. See
+  `node/bench/results/20261127-windows-amd64-native-vs-uuid-nanoid.md`.
 

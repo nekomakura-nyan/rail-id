@@ -1,0 +1,14 @@
+{
+  "name": "railid-node-bench",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Native RailID vs UUIDv4 and NanoID benchmark",
+  "scripts": {
+    "bench": "node bench.mjs"
+  },
+  "dependencies": {
+    "nanoid": "6.0.2",
+    "uuid": "14.0.3"
+  }
+}

@@ -316,6 +316,9 @@ Linux TPM builds need `pkg-config` and `libtss2-dev`. The package is prepared
 with TPM and OS-only binaries for Linux, TPM for Windows, and OS-only for macOS.
 See [`node/README.md`](node/README.md) for the API and fallback behavior.
 
+The native benchmark against UUIDv4 and NanoID is in
+[`node/bench/`](node/bench/README.md).
+
 ## Testing
 
 ```bash
