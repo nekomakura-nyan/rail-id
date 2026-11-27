@@ -38,6 +38,7 @@ Latest local results (clean run after stopping background load):
 
 - [`results/20261127-windows-amd64-native-vs-uuid-nanoid-clean.md`](results/20261127-windows-amd64-native-vs-uuid-nanoid-clean.md)
 - [`results/20261127-windows-amd64-multithread-scaling-clean.md`](results/20261127-windows-amd64-multithread-scaling-clean.md)
+- [`results/20261127-windows-amd64-nanoid-analysis.md`](results/20261127-windows-amd64-nanoid-analysis.md) — component cost breakdown
 
 Earlier runs under background load are kept for comparison:
 
@@ -83,6 +84,38 @@ NanoID scales to about 4.6x on this 6-core / 12-thread host; the remaining gap
 is scheduler, message dispatch, and GC overhead. Each worker has its own NanoID
 pool. RailID OS-only parallel throughput is lower because the single-ID API
 reads the OS CSPRNG per ID; use RailID's bulk APIs for higher throughput.
+
+## Cost breakdown
+
+`nanoid-analysis.mjs` isolates the expensive parts:
+
+| Operation | Median |
+|---|---:|
+| `crypto.randomUUID` `.length` only | 37.83 ns |
+| `crypto.randomUUID` forced copy | 249.99 ns |
+| `uuid.v4` `.length` only | 56.09 ns |
+| `uuid.v4` forced copy | 302.85 ns |
+| `nanoid` `.length` only | 34.80 ns |
+| `nanoid` forced copy | 93.40 ns |
+| RailID OS-only `.length` only | 179.41 ns |
+| RailID OS-only forced copy | 213.25 ns |
+| `crypto.getRandomValues(21)` per call | 1,132.27 ns |
+| prebuilt pool substring + copy | 53.89 ns |
+| 32 KiB pool refill | 39,500 ns (25.32 ns/ID at 1,560 IDs) |
+
+This shows the two NanoID advantages:
+
+1. **RNG call amortization.** A per-call `getRandomValues(21)` is ~1.1 us on this
+   host, while a 32 KiB pool refill costs ~39.5 us and covers ~1,560 IDs
+   (25.3 ns/ID).
+2. **Cheap string materialization.** NanoID copies in ~93 ns; UUID takes
+   ~303 ns when its result is forced into a buffer. `crypto.randomUUID` alone
+   is only ~38 ns when V8 can leave it as a lazy/rope string, but forcing the
+   content exposes the flattening cost.
+
+NanoID's multi-thread scaling is similarly simple: each worker gets its own
+pool and there is no shared state. The workload is CPU-bound after the refill,
+so it scales until physical cores and memory bandwidth saturate.
 
 ## Caveats
 

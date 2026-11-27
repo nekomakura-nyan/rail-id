@@ -40,4 +40,8 @@
   encoded batch 68.5-73.9 Mops/s. 12-worker scaling: NanoID 54.69 Mops/s
   (4.57x), UUIDv4 13.31 Mops/s (4.04x), RailID OS-only 26.42 Mops/s (5.20x).
   See the `*-clean.md` result files.
+- bench(node): added NanoID component analysis. `getRandomValues(21)` costs
+  ~1.13 us/call; a 32 KiB pool refill costs ~39.5 us and covers ~1,560 IDs
+  (~25 ns/ID). Forced-copy cost: NanoID 93 ns, UUIDv4 303 ns, RailID OS-only
+  213 ns. See `node/bench/results/20261127-windows-amd64-nanoid-analysis.md`.
 
