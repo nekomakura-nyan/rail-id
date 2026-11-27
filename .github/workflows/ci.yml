@@ -122,13 +122,13 @@ jobs:
       - name: Verify tarball contents
         working-directory: node
         run: |
-          TARBALL=$(ls railid-*.tgz)
+          TARBALL=$(ls *.tgz)
           tar -tzf "$TARBALL"
           test "$(tar -tzf "$TARBALL" | grep -c '\.node$')" -eq 5
 
       - uses: actions/upload-artifact@v7
         with:
           name: railid-npm-package
-          path: node/railid-*.tgz
+          path: node/*.tgz
           if-no-files-found: error
 

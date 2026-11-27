@@ -306,8 +306,8 @@ with `cargo install railid --features tpm` for the standard profile.
 
 ## Node.js
 
-Native N-API bindings live in [`node/`](node/README.md). The npm package name is
-`railid`; it exposes sync single/batch APIs and async batch APIs.
+Native N-API bindings live in [`node/`](node/README.md). The npm package is
+`@neko-makura/railid`; it exposes sync single/batch APIs and async batch APIs.
 
 ```bash
 cd node

@@ -3,7 +3,9 @@
 ## 1.1.0 - 2026-11-27
 
 - Release `railid` 1.1.0. `railid-tpm` is unchanged and remains 1.0.0.
-- Node package `railid` starts at 1.1.0; it was not published at 1.0.0.
+- Node package is scoped as `@neko-makura/railid`; npm rejected the unscoped
+  `railid` name as too similar to the existing `rail-id` package. Version 1.1.0
+  is the first npm release.
 - perf(core): added a thread-local 8 KiB OS byte pool for single-ID
   `generate_os_only` / hybrid OS half. `generate_os_only` dropped from about
   201 ns to 154 ns per ID in the Node benchmark.
@@ -40,7 +42,7 @@
 - Moved the public source to the standalone `rail-id` repository.
 - Made the documentation self-contained: benchmark harness and Node.js addon
   are no longer referenced as part of this repository.
-- feat(node): added native N-API bindings as npm package `railid` 1.0.0.
+- feat(node): added native N-API bindings as npm package `@neko-makura/railid`.
   Sync APIs (`generate`, `generateOsOnly`, `generateMany`,
   `generateManyEncoded`, `decode`, `version`) and async bulk APIs
   (`generateManyAsync`, `generateManyEncodedAsync`) are included.

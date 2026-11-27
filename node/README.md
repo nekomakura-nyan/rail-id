@@ -1,9 +1,9 @@
-# railid (Node.js)
+# @neko-makura/railid (Node.js)
 
 Native N-API bindings for [RailID](https://crates.io/crates/railid).
 
 ```bash
-npm install railid
+npm install @neko-makura/railid
 ```
 
 The package includes prebuilt N-API binaries. Node.js 18 or newer is required.
@@ -11,7 +11,7 @@ The package includes prebuilt N-API binaries. Node.js 18 or newer is required.
 ## Usage
 
 ```js
-const railid = require('railid');
+const railid = require('@neko-makura/railid');
 
 console.log(railid.version());
 console.log(railid.backend()); // "tpm" or "os-only"

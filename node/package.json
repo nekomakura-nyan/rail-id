@@ -1,5 +1,5 @@
 {
-  "name": "railid",
+  "name": "@neko-makura/railid",
   "version": "1.1.0",
   "description": "Native N-API bindings for RailID: 192-bit timestamp-first identifiers with TPM 2.0 + OS CSPRNG randomness",
   "main": "index.js",
