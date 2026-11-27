@@ -14,25 +14,36 @@ function consume(value) {
   sink = (sink + scratch[0] + scratch[length - 1]) | 0;
 }
 
-function generate() {
-  switch (workerData.mode) {
-    case 'nanoid':
-      return nanoid();
-    case 'uuid':
-      return uuidv4();
-    case 'railid':
-      return railid.generateOsOnly();
-    default:
-      throw new Error(`unknown mode: ${workerData.mode}`);
+// Bind the generator once, outside the timed loop. Selecting it per iteration
+// makes the native call polymorphic and cost roughly 400 ns per ID on arm64.
+let generate;
+switch (workerData.mode) {
+  case 'nanoid':
+    generate = nanoid;
+    break;
+  case 'uuid':
+    generate = uuidv4;
+    break;
+  case 'railid':
+    generate = railid.generateOsOnly;
+    break;
+  default:
+    throw new Error(`unknown mode: ${workerData.mode}`);
+}
+
+function run(count) {
+  for (let index = 0; index < count; index++) {
+    consume(generate());
   }
+  return sink;
 }
 
 parentPort.on('message', (message) => {
   try {
-    for (let index = 0; index < message.count; index++) {
-      consume(generate());
-    }
-    parentPort.postMessage({ ok: true, sink });
+    // Keep the hot loop out of the try block: wrapping it prevents V8 from
+    // optimizing the native call on arm64.
+    const value = run(message.count);
+    parentPort.postMessage({ ok: true, sink: value });
   } catch (error) {
     parentPort.postMessage({ ok: false, error: error.message });
   }

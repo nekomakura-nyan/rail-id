@@ -57,6 +57,19 @@ node multithread.mjs > results/YYYYMMDD-host-multithread-scaling.md
 Worker counts: 1, 2, 4, 6, 8, 12. Worker startup and teardown are excluded
 from the timed rounds; message dispatch is included.
 
+The worker binds its generator once at startup and keeps the hot loop outside
+the message handler's `try` block. Selecting the generator per iteration inside
+a `try`/`catch` cost about 500 ns per native RailID call on arm64 and
+understated the multi-thread RailID rows.
+
+Raspberry Pi 4 (arm64):
+
+- [`results/20261127-rpi4-arm64-native-vs-uuid-nanoid.md`](results/20261127-rpi4-arm64-native-vs-uuid-nanoid.md)
+- [`results/20261127-rpi4-arm64-multithread-scaling.md`](results/20261127-rpi4-arm64-multithread-scaling.md)
+
+Raspberry Pi 4 Model B Rev 1.5 (4 GB), Ubuntu 26.04.1, Cortex-A72 at 1.8 GHz,
+Node.js 22.22.1, `ondemand` governor, 48-68 °C during the run.
+
 Latest local results (final):
 
 - [`results/20261127-windows-amd64-native-vs-uuid-nanoid-final.md`](results/20261127-windows-amd64-native-vs-uuid-nanoid-final.md)
