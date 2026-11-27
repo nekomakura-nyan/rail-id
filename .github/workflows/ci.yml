@@ -313,7 +313,7 @@ jobs:
 
   node-macos-arm64:
     name: node (darwin-arm64 native test)
-    runs-on: macos-15
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
 
