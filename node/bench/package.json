@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "description": "Native RailID vs UUIDv4 and NanoID benchmark",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "bench": "node bench.mjs"
   },
