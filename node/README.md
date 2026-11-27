@@ -60,6 +60,26 @@ const decoded = railid.decode(id);
 console.log(decoded.timestampMs, decoded.randomHex, decoded.encoded);
 ```
 
+## TPM-less deployments
+
+The default entry point keeps the fail-closed TPM hybrid profile: `generate()`
+throws `TpmUnavailable` when the backend or the device is missing. Hosts that
+never have a TPM (for example a Raspberry Pi 4) should import the explicit
+TPM-less entry point:
+
+```js
+const railid = require('@neko-makura/railid/no-tpm');
+
+railid.backend();   // "os-only"
+const id = railid.generate();
+const ids = railid.generateMany(1000);
+```
+
+It exposes the same functions and output format, but every generator uses the
+explicitly degraded OS-only profile and `generateMany(count)` takes no profile
+argument. The choice is visible at the import site, and the default entry point
+still never falls back implicitly.
+
 ## API
 
 | Function | Result | Notes |

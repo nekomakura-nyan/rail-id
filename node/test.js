@@ -55,6 +55,28 @@ async function main() {
     /exceeds binding limit/
   );
 
+  // TPM-less entry point: every generator must use the OS-only profile and
+  // must ignore the default entry point's fail-closed behavior.
+  const noTpm = require('./no-tpm');
+  assert.equal(noTpm.backend(), 'os-only');
+  assert.equal(noTpm.version(), railid.version());
+  const noTpmId = noTpm.generate();
+  assert.match(noTpmId, /^[A-Za-z0-9_-]{32}$/);
+  assert.equal(noTpm.decode(noTpmId).encoded, noTpmId);
+  assert.equal(noTpm.generateOsOnly().length, 32);
+  assert.equal(noTpm.generateBuffer().length, 32);
+  assert.equal(noTpm.generateOsOnlyBuffer().length, 32);
+  assert.equal(noTpm.generateMany(8).length, 8);
+  assert.equal(noTpm.generateManyEncoded(8).length, 8 * 32);
+  assert.equal((await noTpm.generateManyAsync(8)).length, 8);
+  assert.equal((await noTpm.generateManyEncodedAsync(8)).length, 8 * 32);
+  // The OS-only limit applies, not the 1,024-ID TPM batch cap.
+  assert.equal(noTpm.generateManyEncoded(2_048).length, 2_048 * 32);
+  assert.throws(
+    () => noTpm.generateManyEncoded(0xffffffff),
+    /exceeds binding limit/
+  );
+
   let tpmNote = 'TPM profile not exercised';
   try {
     const tpmId = railid.generate();

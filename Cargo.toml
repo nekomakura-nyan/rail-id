@@ -1,6 +1,6 @@
 [package]
 name = "railid"
-version = "1.1.1"
+version = "1.2.0"
 edition = "2021"
 rust-version = "1.85"
 authors = ["Nekomakura"]
@@ -31,7 +31,7 @@ tpm = ["dep:railid-tpm", "railid-tpm/linux", "railid-tpm/windows"]
 [dependencies]
 # The core crate intentionally has only this direct dependency.
 getrandom = "0.4"
-railid-tpm = { version = "1.1", path = "railid-tpm", optional = true }
+railid-tpm = { version = "1.2", path = "railid-tpm", optional = true }
 
 [package.metadata.docs.rs]
 # Core docs must not require a TPM/TSS installation.

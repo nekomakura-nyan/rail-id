@@ -184,3 +184,23 @@ network access or optional-dependency resolution, at the cost of a larger
 tarball (about 14 MB before compression). Platforms without a TPM backend fail
 closed for `generate()` and use `generateOsOnly()`. Adding a target means
 adding one build job, one artifact name and one row in the platform table.
+
+## ADR-011: A TPM-less entry point instead of implicit fallback
+
+**Status:** Accepted (2026-11-27)
+
+**Context:** Devices such as a Raspberry Pi 4 have no TPM 2.0 device. On those
+hosts the default `generate()` fails closed, so every call site must remember to
+use `generateOsOnly()`. The security model requires the degraded profile to be
+an explicit, visible choice rather than a runtime fallback.
+
+**Decision:** Keep the default entry point fail-closed and add
+`@neko-makura/railid/no-tpm`. It exports the same functions, maps
+`generate`/`generateBuffer`/batch calls to the OS-only profile, and reports
+`backend() === "os-only"`. Applications opt in at the import site, so the
+degraded profile stays visible in code, configuration and logs.
+
+**Consequences:** TPM-less deployments use one import and unchanged call sites.
+The default entry never silently uses OS randomness, and the TPM hybrid output
+format is unchanged. The npm tarball gains two small wrapper files; no native
+binary changes.

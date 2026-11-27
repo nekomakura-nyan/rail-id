@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.2.0 - 2026-11-27
+
+- feat(node): add the `@neko-makura/railid/no-tpm` entry point for hosts without
+  a TPM 2.0 device. It maps `generate()`, `generateBuffer()` and the batch APIs
+  to the explicit OS-only profile and reports `backend() === "os-only"`. The
+  default entry point stays fail-closed; there is no implicit fallback.
+- release: unified 1.2.0 for `railid`, `railid-tpm` and the npm package.
+  `railid-tpm` has no functional change.
+- bench: added Raspberry Pi 4 (Cortex-A72, Node 22) results and fixed a
+  worker-thread measurement artifact that cost about 500 ns per native call on
+  arm64.
+
 ## 1.1.1 - 2026-11-27
 
 - Unified release: `railid` 1.1.1, `railid-tpm` 1.1.1, and npm

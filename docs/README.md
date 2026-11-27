@@ -51,5 +51,5 @@ implementation.
 - "Must"/"must not" are normative only in [SPEC-v1.md](SPEC-v1.md); other
   documents explain implementation choices.
 - The crate version and the specification draft version are separate. The crate
-  is `1.1.1`; the specification header may still say `1.0.0-draft`. `railid`,
+  is `1.2.0`; the specification header may still say `1.0.0-draft`. `railid`,
   `railid-tpm` and the npm package share the project version.

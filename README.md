@@ -1,7 +1,7 @@
 # railid
 
 Rust implementation of **RailID v1** (specification `1.0.0-draft`, crate
-`1.1.1`): a 192-bit, timestamp-first, URL-safe identifier with cryptographically
+`1.2.0`): a 192-bit, timestamp-first, URL-safe identifier with cryptographically
 secure randomness. This repository is MIT-licensed.
 
 ```text
@@ -308,6 +308,8 @@ with `cargo install railid --features tpm` for the standard profile.
 
 Native N-API bindings live in [`node/`](node/README.md). The npm package is
 `@neko-makura/railid`; it exposes sync single/batch APIs and async batch APIs.
+TPM-less hosts can import `@neko-makura/railid/no-tpm`, where `generate()` uses
+the explicit OS-only profile; the default entry remains fail-closed.
 
 ```bash
 cd node
