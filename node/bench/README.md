@@ -34,7 +34,12 @@ node multithread.mjs > results/YYYYMMDD-host-multithread-scaling.md
 Worker counts: 1, 2, 4, 6, 8, 12. Worker startup and teardown are excluded
 from the timed rounds; message dispatch is included.
 
-Latest local results:
+Latest local results (clean run after stopping background load):
+
+- [`results/20261127-windows-amd64-native-vs-uuid-nanoid-clean.md`](results/20261127-windows-amd64-native-vs-uuid-nanoid-clean.md)
+- [`results/20261127-windows-amd64-multithread-scaling-clean.md`](results/20261127-windows-amd64-multithread-scaling-clean.md)
+
+Earlier runs under background load are kept for comparison:
 
 - [`results/20261127-windows-amd64-native-vs-uuid-nanoid.md`](results/20261127-windows-amd64-native-vs-uuid-nanoid.md)
 - [`results/20261127-windows-amd64-multithread-scaling.md`](results/20261127-windows-amd64-multithread-scaling.md)
@@ -70,14 +75,14 @@ On the reference 6-core / 12-thread Ryzen 5 8500G:
 
 | Workload | 1 worker | 12 workers | Scaling |
 |---|---:|---:|---:|
-| NanoID 21 | 6.10 Mops/s | 36.11 Mops/s | 5.91x |
-| UUIDv4 (uuid) | 1.39 Mops/s | 8.75 Mops/s | 6.29x |
-| RailID OS-only | 2.68 Mops/s | 18.32 Mops/s | 6.85x |
+| NanoID 21 | 11.96 Mops/s | 54.69 Mops/s | 4.57x |
+| UUIDv4 (uuid) | 3.30 Mops/s | 13.31 Mops/s | 4.04x |
+| RailID OS-only | 5.08 Mops/s | 26.42 Mops/s | 5.20x |
 
-NanoID scales near the physical-core limit (6 cores), then flattens at 8-12
-logical workers. Each worker has its own NanoID pool. RailID OS-only parallel
-throughput is lower because the single-ID API reads the OS CSPRNG per ID; use
-RailID's bulk APIs for higher throughput.
+NanoID scales to about 4.6x on this 6-core / 12-thread host; the remaining gap
+is scheduler, message dispatch, and GC overhead. Each worker has its own NanoID
+pool. RailID OS-only parallel throughput is lower because the single-ID API
+reads the OS CSPRNG per ID; use RailID's bulk APIs for higher throughput.
 
 ## Caveats
 

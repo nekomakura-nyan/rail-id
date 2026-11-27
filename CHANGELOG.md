@@ -35,4 +35,9 @@
   6-core/12-thread reference host: NanoID 6.10 -> 36.11 Mops/s (5.91x), UUIDv4
   1.39 -> 8.75 Mops/s (6.29x), RailID OS-only 2.68 -> 18.32 Mops/s (6.85x).
   See `node/bench/results/20261127-windows-amd64-multithread-scaling.md`.
+- bench(node): clean rerun after stopping background load. Single ID: UUIDv4
+  3.23 Mops/s, NanoID 12.42 Mops/s, RailID OS-only 4.97 Mops/s, TPM 219 ops/s,
+  encoded batch 68.5-73.9 Mops/s. 12-worker scaling: NanoID 54.69 Mops/s
+  (4.57x), UUIDv4 13.31 Mops/s (4.04x), RailID OS-only 26.42 Mops/s (5.20x).
+  See the `*-clean.md` result files.
 
