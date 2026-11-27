@@ -1,7 +1,9 @@
 # Changelog
 
-## 2026-11-27
+## 1.1.0 - 2026-11-27
 
+- Release `railid` 1.1.0. `railid-tpm` is unchanged and remains 1.0.0.
+- Node package `railid` starts at 1.1.0; it was not published at 1.0.0.
 - perf(core): added a thread-local 8 KiB OS byte pool for single-ID
   `generate_os_only` / hybrid OS half. `generate_os_only` dropped from about
   201 ns to 154 ns per ID in the Node benchmark.
