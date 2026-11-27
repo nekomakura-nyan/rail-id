@@ -1,7 +1,7 @@
 # railid
 
 Rust implementation of **RailID v1** (specification `1.0.0-draft`, crate
-`1.1.0`): a 192-bit, timestamp-first, URL-safe identifier with cryptographically
+`1.1.1`): a 192-bit, timestamp-first, URL-safe identifier with cryptographically
 secure randomness. This repository is MIT-licensed.
 
 ```text

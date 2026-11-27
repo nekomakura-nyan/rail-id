@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.1.1 - 2026-11-27
+
+- Unified release: `railid` 1.1.1, `railid-tpm` 1.1.1, and npm
+  `@neko-makura/railid` 1.1.1. `railid-tpm` has no functional change; its
+  version now follows the project release, and `railid` requires `railid-tpm`
+  `1.1`.
+- feat(node): prebuilt addons for Linux arm64 (glibc and musl), Linux armv7,
+  Linux riscv64, and Windows arm64, alongside Linux x64 (glibc TPM + OS-only,
+  musl OS-only), Windows x64, and macOS x64/arm64. The npm tarball now ships 11
+  binaries in one package.
+- feat(node): `scripts/build.js` accepts `--target <platform-arch>[-<libc>]`
+  and `--list`; `scripts/verify.js` checks each binary's container format,
+  architecture and N-API symbol; `scripts/build-in-docker.sh` builds musl and
+  cross targets in a container.
+- ci: added native arm64 runners for Linux, Windows and macOS, plus QEMU
+  runtime tests for armv7 and riscv64. The addon is tested on Node 18, 20, 22
+  and 24 for both glibc and musl.
+- docs: aligned all crate and package versions, documented the platform matrix
+  and the single-tarball decision (ADR-010), and fixed the install examples to
+  `railid = "1.1"`.
+
 ## 1.1.0 - 2026-11-27
 
 - Release `railid` 1.1.0. `railid-tpm` is unchanged and remains 1.0.0.

@@ -18,14 +18,14 @@ Core (OS CSPRNG only; `generate()` returns `TpmUnavailable`):
 
 ```toml
 [dependencies]
-railid = "1.0"
+railid = "1.1"
 ```
 
 Standard TPM 2.0 profile:
 
 ```toml
 [dependencies]
-railid = { version = "1.0", features = ["tpm"] }
+railid = { version = "1.1", features = ["tpm"] }
 ```
 
 The `tpm` feature on Linux requires `pkg-config` and `libtss2-dev`; Windows uses

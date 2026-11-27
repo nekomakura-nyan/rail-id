@@ -6,7 +6,7 @@ This crate is normally used through the `tpm` feature of the `railid` crate:
 
 ```toml
 [dependencies]
-railid = { version = "1.0", features = ["tpm"] }
+railid = { version = "1.1", features = ["tpm"] }
 ```
 
 It exists as a separate crate so the core `railid` build has no system
