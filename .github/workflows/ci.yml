@@ -274,9 +274,9 @@ jobs:
           path: node/railid.win32-arm64-msvc.node
           if-no-files-found: error
 
-  node-macos-x64:
-    name: node (darwin x64 + arm64)
-    runs-on: macos-15-intel
+  node-macos:
+    name: node (darwin arm64 native, x64 cross)
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
 
@@ -295,7 +295,7 @@ jobs:
         working-directory: node
         run: node scripts/build.js
 
-      - name: Test x64 addon
+      - name: Test arm64 addon
         working-directory: node
         run: node test.js
 
@@ -310,32 +310,6 @@ jobs:
             node/railid.darwin-x64.node
             node/railid.darwin-arm64.node
           if-no-files-found: error
-
-  node-macos-arm64:
-    name: node (darwin-arm64 native test)
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: "1.88"
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version: "24"
-
-      - name: Build arm64 addon
-        working-directory: node
-        run: node scripts/build.js --target darwin-arm64
-
-      - name: Test arm64 addon
-        working-directory: node
-        run: node test.js
-
-      - name: Verify binaries
-        working-directory: node
-        run: node scripts/verify.js --target darwin-arm64
 
   node-node-versions:
     name: node ${{ matrix.node }} (${{ matrix.libc }})
@@ -369,8 +343,7 @@ jobs:
       - node-linux-cross
       - node-windows-x64
       - node-windows-arm64
-      - node-macos-x64
-      - node-macos-arm64
+      - node-macos
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v7
