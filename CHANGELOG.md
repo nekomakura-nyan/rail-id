@@ -44,4 +44,9 @@
   ~1.13 us/call; a 32 KiB pool refill costs ~39.5 us and covers ~1,560 IDs
   (~25 ns/ID). Forced-copy cost: NanoID 93 ns, UUIDv4 303 ns, RailID OS-only
   213 ns. See `node/bench/results/20261127-windows-amd64-nanoid-analysis.md`.
+- bench(node): added batch comparison. NanoID/UUIDv4 have no bulk API, so their
+  rows are JS loops. JS string arrays: NanoID 7.06 Mops/s, RailID 6.22 Mops/s,
+  UUIDv4 1.93 Mops/s. Flat 1M buffers: RailID encoded batch 49.98 Mops/s,
+  NanoID 21 packed 11.44 Mops/s, UUIDv4 36 packed 3.34 Mops/s. See
+  `node/bench/results/20261127-windows-amd64-batch-comparison.md`.
 

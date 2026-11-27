@@ -39,6 +39,7 @@ Latest local results (clean run after stopping background load):
 - [`results/20261127-windows-amd64-native-vs-uuid-nanoid-clean.md`](results/20261127-windows-amd64-native-vs-uuid-nanoid-clean.md)
 - [`results/20261127-windows-amd64-multithread-scaling-clean.md`](results/20261127-windows-amd64-multithread-scaling-clean.md)
 - [`results/20261127-windows-amd64-nanoid-analysis.md`](results/20261127-windows-amd64-nanoid-analysis.md) — component cost breakdown
+- [`results/20261127-windows-amd64-batch-comparison.md`](results/20261127-windows-amd64-batch-comparison.md) — batch / array comparison
 
 Earlier runs under background load are kept for comparison:
 
@@ -116,6 +117,31 @@ This shows the two NanoID advantages:
 NanoID's multi-thread scaling is similarly simple: each worker gets its own
 pool and there is no shared state. The workload is CPU-bound after the refill,
 so it scales until physical cores and memory bandwidth saturate.
+
+## Batch comparison
+
+NanoID and UUIDv4 do not have a bulk API, so their batch rows are JavaScript
+loops. The RailID row is one N-API call returning a contiguous Buffer. All rows
+include content consumption inside the timed region.
+
+| Workload | N | Median/ID | Throughput |
+|---|---:|---:|---:|
+| NanoID 21 string array | 100,000 | 141.73 ns | 7.06 Mops/s |
+| NanoID 21 packed Buffer | 1,000,000 | 87.39 ns | 11.44 Mops/s |
+| NanoID 32 packed Buffer | 1,000,000 | 106.48 ns | 9.39 Mops/s |
+| UUIDv4 string array | 100,000 | 517.88 ns | 1.93 Mops/s |
+| UUIDv4 packed Buffer | 1,000,000 | 299.57 ns | 3.34 Mops/s |
+| RailID OS-only string array | 100,000 | 160.86 ns | 6.22 Mops/s |
+| RailID OS-only encoded batch | 1,000,000 | 20.01 ns | 49.98 Mops/s |
+
+Interpretation:
+
+- For **JS string arrays**, NanoID is still fastest, with RailID about 1.1x
+  slower; UUIDv4 is much slower.
+- For **flat buffers**, RailID's encoded batch is about 4.4x faster than a
+  NanoID 21-byte packed loop, but it is a single native batch call, not a
+  per-ID JS API.
+- NanoID 32 (192 bits) is slower than NanoID 21 (126 bits), as expected.
 
 ## Caveats
 
