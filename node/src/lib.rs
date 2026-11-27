@@ -4,11 +4,12 @@
 //! APIs. Bulk work runs on the libuv thread pool through `AsyncTask`, while
 //! the TPM backend remains serialized by its process-wide mutex.
 
-use napi::bindgen_prelude::{AsyncTask, Buffer, BufferSlice, Result};
-use napi::{Env, Task};
+use napi::bindgen_prelude::{AsyncTask, Buffer, BufferSlice, Result, ToNapiValue, TypeName};
+use napi::{sys, Env, Task, ValueType};
 use napi_derive::napi;
+use std::ptr;
 
-use railid::{Profile, RailId, RailIdError};
+use railid::{Profile, RailId, RailIdError, ENCODED_LEN};
 
 /// Hard cap for encoded batches returned through N-API (32 MiB at 1M IDs).
 const MAX_ENCODED_BATCH_IDS: u32 = 1_000_000;
@@ -46,19 +47,60 @@ fn profile(os_only: Option<bool>) -> Profile {
     }
 }
 
+/// A 32-byte ASCII RailID encoded as a JavaScript Latin-1 string.
+///
+/// Encoding directly from the stack avoids a Rust `String` allocation and an
+/// extra UTF-8 validation pass in the N-API string conversion.
+pub struct Latin1RailId([u8; ENCODED_LEN]);
+
+impl Latin1RailId {
+    fn from_id(id: RailId) -> Self {
+        let encoded = id.encode_array();
+        Self(*encoded.as_bytes())
+    }
+}
+
+impl TypeName for Latin1RailId {
+    fn type_name() -> &'static str {
+        "String"
+    }
+
+    fn value_type() -> ValueType {
+        ValueType::String
+    }
+}
+
+impl ToNapiValue for Latin1RailId {
+    unsafe fn to_napi_value(env: sys::napi_env, value: Self) -> Result<sys::napi_value> {
+        let mut result = ptr::null_mut();
+        napi::check_status!(
+            unsafe {
+                sys::napi_create_string_latin1(
+                    env,
+                    value.0.as_ptr().cast(),
+                    value.0.len() as isize,
+                    &mut result,
+                )
+            },
+            "Failed to create a Latin-1 RailID string"
+        )?;
+        Ok(result)
+    }
+}
+
 /// Generate one RailID with the TPM hybrid profile.
 #[napi]
-pub fn generate() -> Result<String> {
+pub fn generate() -> Result<Latin1RailId> {
     railid::generate()
-        .map(|id| id.encode())
+        .map(Latin1RailId::from_id)
         .map_err(to_napi_error)
 }
 
 /// Generate one RailID with the explicitly degraded OS-only profile.
 #[napi]
-pub fn generate_os_only() -> Result<String> {
+pub fn generate_os_only() -> Result<Latin1RailId> {
     railid::generate_os_only()
-        .map(|id| id.encode())
+        .map(Latin1RailId::from_id)
         .map_err(to_napi_error)
 }
 
@@ -87,9 +129,11 @@ fn encoded_buffer(env: &Env, id: RailId) -> Result<Buffer> {
 
 /// Generate `count` IDs as a JavaScript string array.
 #[napi]
-pub fn generate_many(count: u32, os_only: Option<bool>) -> Result<Vec<String>> {
+pub fn generate_many(count: u32, os_only: Option<bool>) -> Result<Vec<Latin1RailId>> {
     let count = check_count(count, batch_limit(os_only, MAX_STRING_BATCH_IDS))?;
-    railid::generate_many_strings(count, profile(os_only)).map_err(to_napi_error)
+    railid::generate_many(count, profile(os_only))
+        .map(|ids| ids.into_iter().map(Latin1RailId::from_id).collect())
+        .map_err(to_napi_error)
 }
 
 /// Generate `count` IDs as one contiguous Base64URL Buffer (`count * 32` bytes).
@@ -171,11 +215,13 @@ pub struct GenerateManyTask {
 }
 
 impl Task for GenerateManyTask {
-    type Output = Vec<String>;
-    type JsValue = Vec<String>;
+    type Output = Vec<Latin1RailId>;
+    type JsValue = Vec<Latin1RailId>;
 
     fn compute(&mut self) -> Result<Self::Output> {
-        railid::generate_many_strings(self.count, self.profile).map_err(to_napi_error)
+        railid::generate_many(self.count, self.profile)
+            .map(|ids| ids.into_iter().map(Latin1RailId::from_id).collect())
+            .map_err(to_napi_error)
     }
 
     fn resolve(&mut self, _env: Env, output: Self::Output) -> Result<Self::JsValue> {

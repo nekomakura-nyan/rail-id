@@ -11,9 +11,13 @@
 - feat(node): added `generateBuffer()` and `generateOsOnlyBuffer()` returning
   32 ASCII bytes without a JS string. A per-call Buffer allocation is slower
   than the string path; batch APIs remain the throughput path.
-- bench(node): optimized results: RailID OS-only 6.51 Mops/s single, 27.43
-  Mops/s at 12 workers; encoded batch 66.4 Mops/s; NanoID 12.6 single / 53.34
-  at 12 workers; UUIDv4 3.54 / 12.67. See the `*-optimized.md` result files.
+- perf(node): `generate`, `generateOsOnly`, `generateMany`, and async string
+  batches now build JS strings directly with `napi_create_string_latin1` from
+  the stack, avoiding a Rust `String` allocation and UTF-8 conversion.
+- bench(node): optimized results: RailID OS-only 9.55 Mops/s single, 39.40
+  Mops/s at 12 workers; string array 151.08 ns/ID; encoded batch 70.85 Mops/s;
+  NanoID 11.97 single / 46.23 at 12 workers; UUIDv4 3.61 / 10.79. See the
+  `*-latin1.md` result files.
 
 ## 1.0.0 - 2026-11-25
 
